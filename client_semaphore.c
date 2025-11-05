@@ -85,8 +85,8 @@ void detach_client_semaphore(const sembuf* client_semaphore) {
 }
 
 
-int get_new_request_id() {
-    return (int) getrand();
+int get_new_request_id(const int request_id) {
+    return request_id;
 }
 
 
@@ -104,18 +104,29 @@ void prepare_n_requests(sembuf* client_semaphore, const int num_requests) {
     client_semaphore->request_count = num_requests;
 
     for (int i = 0; i < num_requests; i++) {
-        prepare_request(&client_semaphore->requests[i]);
+        prepare_request(client_semaphore, i);
     }
 }
 
-void prepare_request(client_request* request) {
+void prepare_request(const sembuf* client_semaphore, const int request_id) {
+    if (request_id >= client_semaphore->request_count) {
+        fprintf(
+            stderr,
+            "start_transaction_client_semaphore: Can't start request %d, only %d requests allocated",
+            request_id,
+            client_semaphore->request_count
+        );
+        exit(EXIT_FAILURE);
+    }
+    client_request* request = &client_semaphore->requests[request_id];
+
     request->theorical_result = 0;
     for (int i = 0; i < maxval; i++) {
         request->tab[i] = getrand() % MAX_RAND_VALUE;
         request->theorical_result += request->tab[i];
     }
     request->theorical_result /= maxval;
-    request->request_id = get_new_request_id();
+    request->request_id = get_new_request_id(request_id);
 }
 
 void start_transaction_client_semaphore(const sembuf* client_semaphore, const int request_id) {

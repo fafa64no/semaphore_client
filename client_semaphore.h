@@ -33,10 +33,10 @@ void delete_client_semaphore(sembuf* client_semaphore);
 void attach_client_semaphore(sembuf* client_semaphore);
 void detach_client_semaphore(const sembuf* client_semaphore);
 
-int get_new_request_id();
+int get_new_req(int request_id);
 
 void prepare_n_requests(sembuf* client_semaphore, int num_requests);
-void prepare_request(client_request* request);
+void prepare_request(const sembuf* client_semaphore, int num_requests);
 void start_transaction_client_semaphore(const sembuf* client_semaphore, int request_id);
 
 void print_client_status(const sembuf* client_semaphore);
