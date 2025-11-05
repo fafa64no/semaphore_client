@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 4.0)
-project(semaphore_client)
+project(semaphore_client C)
 
 set(CMAKE_C_STANDARD 11)
 
