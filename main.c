@@ -12,6 +12,8 @@ int main() {
     print_client_status(client);
 
     single_request_test_client(client);
+    multiple_request_test_client(client);
+    many_many_request_test_client(client);
 
     delete_client_semaphore(client);
     return EXIT_SUCCESS;

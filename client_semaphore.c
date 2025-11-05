@@ -91,6 +91,11 @@ int get_new_request_id() {
 
 
 void prepare_n_requests(sembuf* client_semaphore, const int num_requests) {
+    if (client_semaphore->request_count != 0) {
+        free(client_semaphore->requests);
+        client_semaphore->request_count = 0;
+    }
+
     client_semaphore->requests = malloc(num_requests * sizeof(client_request));
     if (client_semaphore->requests == NULL) {
         fprintf(stderr, "prepare_n_requests: malloc failed with errno: %d", errno);
@@ -182,11 +187,29 @@ void check_if_request_successful(const sembuf* client_semaphore, const int reque
 
 
 void single_request_test_client(sembuf* client_semaphore) {
+    printf("================== single_request_test_client ==================\n");
     prepare_n_requests(client_semaphore, 1);
     start_transaction_client_semaphore(client_semaphore, 0);
     check_if_request_successful(client_semaphore, 0, FALSE);
 }
 
+void test_n_requests(sembuf* client_semaphore, const int num_requests) {
+    prepare_n_requests(client_semaphore, num_requests);
+    for (int i = 0; i < num_requests; i++) {
+        start_transaction_client_semaphore(client_semaphore, i);
+        check_if_request_successful(client_semaphore, i, TRUE);
+    }
+}
+
+void multiple_request_test_client(sembuf* client_semaphore) {
+    printf("================== multiple_request_test_client ==================\n");
+    test_n_requests(client_semaphore, 100);
+}
+
+void many_many_request_test_client(sembuf* client_semaphore) {
+    printf("================== many_many_request_test_client ==================\n");
+    test_n_requests(client_semaphore, 10000);
+}
 
 
 

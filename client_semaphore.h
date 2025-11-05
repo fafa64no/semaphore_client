@@ -43,5 +43,8 @@ void print_client_status(const sembuf* client_semaphore);
 void check_if_request_successful(const sembuf* client_semaphore, int request_id, int only_display_failure);
 
 void single_request_test_client(sembuf* client_semaphore);
+void test_n_requests(sembuf* client_semaphore, int num_requests);
+void multiple_request_test_client(sembuf* client_semaphore);
+void many_many_request_test_client(sembuf* client_semaphore);
 
 #endif //SEMAPHORE_CLIENT_CLIENT_SEMAPHORE_H
