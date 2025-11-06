@@ -23,17 +23,18 @@ typedef struct client_semaphore_struct {
 
     client_request* requests;
     int request_count;
+    int client_id;
 } sembuf;
 
 #define CLIENT_SEMAPHORE_TYPE_SIZE sizeof(sembuf)
 
-sembuf* init_client_semaphore();
+sembuf* init_client_semaphore(int client_id);
 void delete_client_semaphore(sembuf* client_semaphore);
 
 void attach_client_semaphore(sembuf* client_semaphore);
 void detach_client_semaphore(const sembuf* client_semaphore);
 
-int get_new_req(int request_id);
+int get_new_req(int client_id, int request_id);
 
 void prepare_n_requests(sembuf* client_semaphore, int num_requests);
 void prepare_request(const sembuf* client_semaphore, int num_requests);

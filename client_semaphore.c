@@ -15,12 +15,13 @@
 #define SYS_ERR (-1)
 #define SYS_ERR_PTR ((void*)-1)
 #define MAX_RAND_VALUE (100)
+#define CLIENT_REQ_ID_BIT_OFFSET (16)
 
 #define TRUE (1)
 #define FALSE (0)
 
 
-sembuf* init_client_semaphore() {
+sembuf* init_client_semaphore(const int client_id) {
     sembuf* client = malloc(CLIENT_SEMAPHORE_TYPE_SIZE);
     if (client == NULL) {
         fprintf(stderr, "init_client_semaphore: malloc failed with errno: %d", errno);
@@ -53,6 +54,7 @@ sembuf* init_client_semaphore() {
         exit(EXIT_FAILURE);
     }
 
+    client->client_id = client_id;
     attach_client_semaphore(client);
     return client;
 }
@@ -85,8 +87,8 @@ void detach_client_semaphore(const sembuf* client_semaphore) {
 }
 
 
-int get_new_request_id(const int request_id) {
-    return request_id;
+int get_new_request_id(const int client_id, const int request_id) {
+    return request_id | (client_id << CLIENT_REQ_ID_BIT_OFFSET);
 }
 
 
@@ -126,7 +128,7 @@ void prepare_request(const sembuf* client_semaphore, const int request_id) {
         request->theorical_result += request->tab[i];
     }
     request->theorical_result /= maxval;
-    request->request_id = get_new_request_id(request_id);
+    request->request_id = get_new_request_id(client_semaphore->client_id, request_id);
 }
 
 void start_transaction_client_semaphore(const sembuf* client_semaphore, const int request_id) {
