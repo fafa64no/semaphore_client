@@ -47,5 +47,6 @@ void single_request_test_client(sembuf* client_semaphore);
 void test_n_requests(sembuf* client_semaphore, int num_requests);
 void multiple_request_test_client(sembuf* client_semaphore);
 void many_many_request_test_client(sembuf* client_semaphore);
+void multiple_client_test();
 
 #endif //SEMAPHORE_CLIENT_CLIENT_SEMAPHORE_H

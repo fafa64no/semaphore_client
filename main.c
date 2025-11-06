@@ -17,7 +17,7 @@ int main() {
 
     delete_client_semaphore(client);
 
-
+    multiple_client_test();
 
     return EXIT_SUCCESS;
 }

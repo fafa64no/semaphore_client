@@ -9,6 +9,7 @@
 #include <unistd.h>
 #include <errno.h>
 #include <string.h>
+#include <sys/wait.h>
 
 #define seg_cnt 3
 
@@ -16,9 +17,17 @@
 #define SYS_ERR_PTR ((void*)-1)
 #define MAX_RAND_VALUE (100)
 #define CLIENT_REQ_ID_BIT_OFFSET (16)
+#define DELAY_BEFORE_FORK 500000
 
 #define TRUE (1)
 #define FALSE (0)
+
+#define NB_REQUEST_TEST_SINGLE (1)
+#define NB_REQUEST_TEST_MULTIPLE (100)
+#define NB_REQUEST_TEST_MANY_MANY (10000)
+
+#define NB_CLIENTS_TO_TEST (100)
+#define NB_REQUEST_PER_CLIENT (1000)
 
 
 sembuf* init_client_semaphore(const int client_id) {
@@ -54,6 +63,7 @@ sembuf* init_client_semaphore(const int client_id) {
         exit(EXIT_FAILURE);
     }
 
+    client->request_count = 0;
     client->client_id = client_id;
     attach_client_semaphore(client);
     return client;
@@ -201,9 +211,10 @@ void check_if_request_successful(const sembuf* client_semaphore, const int reque
 
 void single_request_test_client(sembuf* client_semaphore) {
     printf("================== single_request_test_client ==================\n");
-    prepare_n_requests(client_semaphore, 1);
+    prepare_n_requests(client_semaphore, NB_REQUEST_TEST_SINGLE);
     start_transaction_client_semaphore(client_semaphore, 0);
     check_if_request_successful(client_semaphore, 0, FALSE);
+    printf("\n");
 }
 
 void test_n_requests(sembuf* client_semaphore, const int num_requests) {
@@ -216,15 +227,43 @@ void test_n_requests(sembuf* client_semaphore, const int num_requests) {
 
 void multiple_request_test_client(sembuf* client_semaphore) {
     printf("================== multiple_request_test_client ==================\n");
-    test_n_requests(client_semaphore, 100);
+    test_n_requests(client_semaphore, NB_REQUEST_TEST_MULTIPLE);
+    printf("\n");
 }
 
 void many_many_request_test_client(sembuf* client_semaphore) {
     printf("================== many_many_request_test_client ==================\n");
-    test_n_requests(client_semaphore, 10000);
+    test_n_requests(client_semaphore, NB_REQUEST_TEST_MANY_MANY);
+    printf("\n");
 }
 
 
+void multiple_client_test() {
+    printf("================== multiple_client_test ==================\n");
+    usleep(DELAY_BEFORE_FORK);
+
+    for (int i = 0; i < NB_CLIENTS_TO_TEST; i++) {
+        const pid_t pid = fork();
+        if (pid == SYS_ERR) {
+            fprintf(stderr, "multiple_client_test: fork failed with errno: %d", errno);
+            continue;
+        }
+
+        if (pid != 0) {
+            sembuf* client = init_client_semaphore(i);
+            test_n_requests(client, NB_REQUEST_PER_CLIENT);
+            delete_client_semaphore(client);
+            exit(EXIT_SUCCESS);
+        }
+    }
+
+    for (int i = 0; i < NB_CLIENTS_TO_TEST; i++) {
+        int status;
+        wait(&status);
+    }
+
+    printf("\n");
+}
 
 
 
